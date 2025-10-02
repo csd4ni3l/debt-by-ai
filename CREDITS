@@ -1,0 +1,6 @@
+Huge Thanks to Python for being the programming language used in this app.
+https://www.python.org/
+
+Thanks to the following libraries that were used in this app:
+rich - https://github.com/Textualize/rich
+requests - https://github.com/psf/requests
