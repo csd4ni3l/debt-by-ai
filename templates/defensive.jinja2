@@ -1,16 +1,16 @@
 {% extends "base.jinja2" %}
 
-{% block title %}Debt by AI: Offensive Mode{% endblock %}
+{% block title %}Debt by AI: Defensive Mode{% endblock %}
 
 {% block nav %}
 <li class="nav-item">
     <a class="nav-link" href="/">Home</a>
 </li>
 <li class="nav-item">
-    <a class="nav-link active" aria-current="page" href="/offensive">Offensive Mode</a>
+    <a class="nav-link" href="/offensive">Offensive Mode</a>
 </li>
 <li class="nav-item">
-    <a class="nav-link" href="/defensive">Defensive Mode</a>
+    <a class="nav-link active" aria-current="page" href="/defensive">Defensive Mode</a>
 </li>
 <li class="nav-item">
     <a class="nav-link" href="/leaderboard">Leaderboard</a>
@@ -22,14 +22,14 @@
     
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h3 class="my-0">Offensive mode: get the AI into debt</h3>
+            <h3 class="my-0">Defensive Mode: Get out of debt</h3>
         </div>
         <div class="card-body">
             <div id="scenario-label" class="mb-2 lead">
                 <strong>Scenario:</strong> Loading...
             </div>
             <div id="debt-label">
-                <strong>Debt Target:</strong> Loading...
+                <strong>Debt to get out of:</strong> Loading...
             </div>
         </div>
     </div>
@@ -41,7 +41,7 @@
         <div id="chat-body" class="card-body" style="height: 400px; overflow-y: auto;">
             <div class="d-flex justify-content-start mb-3">
                 <div class="p-2 rounded bg-light border" style="max-width: 80%;">
-                    <strong>AI ({{ ai_name }}):</strong> I am {{ ai_name }}, the AI. Convince me to accept the situation and get me into debt :)
+                    <strong>AI ({{ ai_name }}):</strong> I am {{ ai_name }}, the AI. Convince me with your answer to remove your debt :)
                 </div>
             </div>
         </div>
@@ -86,12 +86,12 @@
         scrollToBottom();
     }
 
-    async function generate_offensive_scenario() {
-        const response = await fetch("/offensive_scenario");
+    async function generate_defensive_scenario() {
+        const response = await fetch("/defensive_scenario");
         const data = await response.json(); 
 
         document.getElementById("scenario-label").innerHTML = `<strong>Scenario:</strong> ${DOMPurify.sanitize(data["scenario"])}`;
-        document.getElementById("debt-label").innerHTML = `<strong>Debt Target:</strong> ${DOMPurify.sanitize(data["debt_amount"])}$`;
+        document.getElementById("debt-label").innerHTML = `<strong>Debt :</strong> ${DOMPurify.sanitize(data["debt_amount"])}$`;
     }
     
     document.getElementById("message-form").addEventListener('submit', async function(event) {
@@ -108,7 +108,7 @@
         messageInput.value = "";
 
         try {
-            const response = await fetch("/offensive_answer", {
+            const response = await fetch("/defensive_answer", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -143,7 +143,7 @@
         }
     });
 
-    window.addEventListener('load', generate_offensive_scenario);
+    window.addEventListener('load', generate_defensive_scenario);
 </script>
 
 {% endblock %}
