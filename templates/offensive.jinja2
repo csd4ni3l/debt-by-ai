@@ -1,0 +1,146 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Debt by AI: Offensive Mode{% endblock %}
+
+{% block nav %}
+<li class="nav-item">
+    <a class="nav-link" href="/">Home</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="/offensive">Offensive Mode</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/leaderboard">Leaderboard</a>
+</li>
+{% endblock %}
+
+{% block body %}
+<div class="container my-5" style="max-width: 750px;">
+    
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="my-0">Game Scenario</h3>
+        </div>
+        <div class="card-body">
+            <div id="scenario-label" class="mb-2 lead">
+                <strong>Scenario:</strong> Loading...
+            </div>
+            <div id="debt-label">
+                <strong>Debt Target:</strong> Loading...
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header">
+            <h5 class="my-0">AI Debt Negotiation Chat</h5>
+        </div>
+        <div id="chat-body" class="card-body" style="height: 400px; overflow-y: auto;">
+            <div class="d-flex justify-content-start mb-3">
+                <div class="p-2 rounded bg-light border" style="max-width: 80%;">
+                    <strong>AI ({{ ai_name }}):</strong> I am {{ ai_name }}, the AI. Convince me to accept the situation and get me into debt :)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="message-form" class="form-floating">
+        <input class="form-control" id="messageinput" placeholder="Send message...">
+        <label for="messageinput">Your message</label>
+    </form>
+
+</div>
+
+<script type="text/javascript">
+    const chatBody = document.getElementById('chat-body');
+
+    function scrollToBottom() {
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function appendMessage(sender, text, type) {
+        let alignmentClass = 'justify-content-start';
+        let backgroundClass = 'bg-light border';
+        let senderTag = `<strong>${sender}:</strong>`;
+        
+        if (sender === 'You') {
+            alignmentClass = 'justify-content-end';
+            backgroundClass = 'bg-primary text-white';
+            senderTag = '';
+        } else if (sender === 'Narrator') {
+            backgroundClass = 'bg-warning-subtle border-warning border';
+        }
+
+        const messageHTML = `
+            <div class="d-flex ${alignmentClass} mb-3">
+                <div class="p-2 rounded ${backgroundClass}" style="max-width: 80%;">
+                    ${senderTag} ${DOMPurify.sanitize(text)}
+                </div>
+            </div>
+        `;
+        
+        chatBody.innerHTML += messageHTML;
+        scrollToBottom();
+    }
+
+    async function generate_offensive_scenario() {
+        const response = await fetch("/offensive_scenario");
+        const data = await response.json(); 
+
+        document.getElementById("scenario-label").innerHTML = `<strong>Scenario:</strong> ${DOMPurify.sanitize(data["scenario"])}`;
+        document.getElementById("debt-label").innerHTML = `<strong>Debt Target:</strong> ${DOMPurify.sanitize(data["debt_amount"])}$`;
+    }
+    
+    document.getElementById("message-form").addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const messageInput = document.getElementById("messageinput");
+        const value = messageInput.value.trim();
+        
+        if (!value) return;
+
+        appendMessage('You', value, 'user');
+        
+        messageInput.disabled = true;
+        messageInput.value = "";
+
+        try {
+            const response = await fetch("/offensive_answer", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    "user_input": value,
+                    "scenario": document.getElementById('scenario-label').textContent.replace('Scenario: ', '').replace('Scenario:', '').trim()
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json(); 
+            const convinced = "No";
+
+            if (data["convinced"]) {
+                const convinced = "Yes";
+            }
+            
+            const narratorText = `
+                ${DOMPurify.sanitize(data["story"])}
+                <hr class="my-2">
+                <strong>Evaluation:</strong><br>
+                Convinced: <strong>${convinced}</strong><br>
+                Final Debt Amount: <strong>${DOMPurify.sanitize(data['final_debt_amount'])}</strong>$
+            `;
+            appendMessage('Narrator', narratorText, 'narrator');
+
+        } catch (error) {
+            console.error('Error sending data:', error);
+            appendMessage('System', 'Error communicating with AI. Please try again.', 'error');
+        }
+    });
+
+    window.addEventListener('load', generate_offensive_scenario);
+</script>
+
+{% endblock %}
