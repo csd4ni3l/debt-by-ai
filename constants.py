@@ -102,5 +102,31 @@ For Convinced, reply only as **Yes** or **No**.
 For Final Debt Amount, reply only as an integer followed by `$`.
 """
 
+ACHIEVEMENTS = [
+    ["offensive_wins", 1, "First Blood", "Convince the AI to take its very first loan."],
+    ["offensive_wins", 5, "Loan Shark Jr.", "You're getting good at this persuasion thing."],
+    ["offensive_wins", 10, "Debt Dealer", "Handing out debt like free samples."],
+    ["offensive_wins", 25, "Corporate Banker", "You’ve made convincing people into debt your 9–5."],
+    ["offensive_wins", 50, "Master of Manipulation", "Even the AI starts asking you for financial advice."],
+
+    ["defensive_wins", 1, "Bailout", "Escape your very first financial disaster."],
+    ["defensive_wins", 5, "Debt Dodger", "You’re wriggling out of these loans nicely."],
+    ["defensive_wins", 10, "Budget Ninja", "Slice your way out of debt like a pro."],
+    ["defensive_wins", 25, "Crisis Manager", "The economy collapses, but you’re still debt-free."],
+    ["defensive_wins", 50, "Untouchable", "Even the AI can’t make you owe a dime."],
+
+    ["offended_debt", 10000, "Pocket Change", "Get the AI to owe its first $10,000."],
+    ["offended_debt", 100000, "Six Figures", "That’s more debt than a fresh graduate!"],
+    ["offended_debt", 1000000, "Millionaire Maker", "Convince the AI to take a million in loans."],
+    ["offended_debt", 10000000, "AI IMF", "You’ve basically become the AI’s International Monetary Fund."],
+    ["offended_debt", 100000000, "Debt God", "The AI owes more money than some countries."],
+
+    ["defended_debt", 10000, "Escape Artist", "Get out of $10,000 worth of debt."],
+    ["defended_debt", 100000, "Financial Houdini", "Slip out of six figures in debt like it’s nothing."],
+    ["defended_debt", 1000000, "Debt-Free Millionaire", "Wiggle out of a million in obligations."],
+    ["defended_debt", 10000000, "National Bailout", "Get rid of $10 million like you own the treasury."],
+    ["defended_debt", 100000000, "Debt Slayer", "Escape debt levels higher than some governments."],
+]
+
 debt_amount_regex = re.compile(r"Debt amount: \d+\$")
 evaluation_regex = re.compile(r"EVALUATION:\s*\nConvinced: (Yes|No)\s*\nFinal Debt Amount: (\d+\$)")

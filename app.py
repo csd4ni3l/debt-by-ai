@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, g, redirect, url_for, Respons
 from dotenv import load_dotenv
 from google.genai import Client, types
 
-from constants import OFFENSIVE_SCENARIO_PROMPT, OFFENSIVE_ANSWER_PROMPT, DEFENSIVE_SCENARIO_PROMPT, DEFENSIVE_ANSWER_PROMPT, debt_amount_regex, evaluation_regex, AI_NAME
+from constants import *
 
 import os, requests, time, re, sqlite3, flask_login, bcrypt, secrets
 
@@ -60,6 +60,83 @@ def unathorized_handler():
 def main():
     username = flask_login.current_user.id
     return render_template("index.jinja2", username=username)
+
+@app.route("/profile")
+@flask_login.login_required
+def profile():
+    username = flask_login.current_user.id
+
+    cur = get_db().cursor()
+    
+    cur.execute("SELECT offended_debt_amount, defended_debt_amount, offensive_wins, defensive_wins FROM Users WHERE username = ?", (username, ))
+
+    row = cur.fetchone()
+    if not row:
+        return Response("Invalid login. Please log out.", 400)
+
+    cur.close()
+
+    formatted_achievements = []
+
+    for achievement in ACHIEVEMENTS:
+        if achievement[0] == "offended_debt":
+            user_amount = row[0]
+            text = "You need to offend {difference}$ more debt!"
+        elif achievement[0] == "defended_debt":
+            user_amount = row[1]
+            text = "You need to defend {difference}$ more debt!"
+        elif achievement[0] == "offensive_wins":
+            user_amount = row[2]
+            text = "You need to win in Offensive Mode {difference} more times!"
+        elif achievement[0] == "defended_wins":
+            user_amount = row[3]
+            text = "You need to win in Defensive Mode {difference} more times!"
+
+        achievement_minimum = achievement[1]
+
+        if row[0] < achievement[1]:
+            formatted_achievements.append([achievement[2], achievement[3], text.format(difference=achievement_minimum - user_amount)])
+        else:
+            formatted_achievements.append([achievement[2], achievement[3], "Completed"])
+
+    return render_template("profile.jinja2", username=username, user_data=row, logged_in_account=True, achievements=formatted_achievements)
+
+@app.route("/profile/<username>")
+def profile_external(username):
+    cur = get_db().cursor()
+    
+    cur.execute("SELECT offended_debt_amount, defended_debt_amount, offensive_wins, defensive_wins FROM Users WHERE username = ?", (username, ))
+
+    row = cur.fetchone()
+    if not row:
+        return Response("Invalid login. Please log out.", 400)
+
+    cur.close()
+
+    formatted_achievements = []
+
+    for achievement in ACHIEVEMENTS:
+        if achievement[0] == "offended_debt":
+            user_amount = row[0]
+            text = "You need to offend {difference}$ more debt!"
+        elif achievement[0] == "defended_debt":
+            user_amount = row[1]
+            text = "You need to defend {difference}$ more debt!"
+        elif achievement[0] == "offensive_wins":
+            user_amount = row[2]
+            text = "You need to win in Offensive Mode {difference} more times!"
+        elif achievement[0] == "defended_wins":
+            user_amount = row[3]
+            text = "You need to win in Defensive Mode {difference} more times!"
+
+        achievement_minimum = achievement[1]
+
+        if row[0] < achievement[1]:
+            formatted_achievements.append([achievement[2], achievement[3], text.format(difference=achievement_minimum - user_amount)])
+        else:
+            formatted_achievements.append([achievement[2], achievement[3], "Completed"])
+
+    return render_template("profile.jinja2", username=username, user_data=row, logged_in_account=False, achivements=formatted_achievements)
 
 @app.route("/offensive")
 @flask_login.login_required
