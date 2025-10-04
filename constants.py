@@ -9,7 +9,7 @@ YOU, as the assistant, will have to be convinced by the user's plan to get out o
 
 REPLY FORMAT:
 '''
-Scenario: The existing high-debt situation
+Scenario: The situation in one sentence
 Debt amount: The exact total debt in dollars
 '''
 
@@ -28,7 +28,7 @@ YOU, as the assistant, are the skeptical recipient who must be convinced by the 
 
 REPLY FORMAT: 
 '''
-Scenario: The immediate debt-inducing offer
+Scenario: The offer in one sentence
 Debt amount: The exact initial debt in dollars
 '''
 
