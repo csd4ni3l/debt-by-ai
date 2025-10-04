@@ -6,13 +6,14 @@ from constants import *
 
 import os, requests, time, re, sqlite3, flask_login, bcrypt, secrets
 
-load_dotenv(".env")
+if os.path.exists(".env"):
+    load_dotenv(".env")
 
-if not os.environ["USE_HACKCLUB_AI"]:
+if not os.environ.get("USE_HACKCLUB_AI", True):
     gemini_client = Client()
 
 app = Flask(__name__)
-app.secret_key = os.environ["FLASK_SECRET_KEY"]
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
 
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
@@ -237,7 +238,7 @@ def register():
         return redirect(url_for("login"))
 
 def ai_prompt(prompt):
-    if os.environ["USE_HACKCLUB_AI"]:
+    if os.environ.get("USE_HACKCLUB_AI", True):
         response = requests.post(
             "https://ai.hackclub.com/chat/completions", 
             headers={"Content-Type": "application/json"},

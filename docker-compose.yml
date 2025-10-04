@@ -1,0 +1,17 @@
+services:
+  debt-by-ai:
+    build: .
+    container_name: debt-by-ai
+    ports:
+      - "8080:8080"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      DEBUG_MODE: "false"
+      USE_HACKCLUB_AI: "false"
+      GEMINI_API_KEY: "changeme"
+      FLASK_SECRET_KEY: "changeme"
+      DB_FILE: "/app/data.db"
+    volumes:
+      - ./data.db:/app/data.db
+    restart: unless-stopped
