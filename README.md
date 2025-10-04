@@ -1,5 +1,9 @@
 Debt by AI is a game where you have to convince an AI to get into debt, or to get you out of it.
-The 2 modes are Offensive(When you have to convince it to get into it) and Defensive(When you have to get out of it).
+
+The 2 modes are:
+- Offensive: You have to convince it to get into debt.
+- Defensive: You have to convince ai with a solution to get out of debt.
+
 The game was inspired by Death by AI, a game on Discord, but this game has no affiliation with Discord or any subsidiaries.
 
 # How to run:

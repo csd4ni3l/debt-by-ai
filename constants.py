@@ -101,8 +101,8 @@ Final Debt Amount: [Integer >= Original Debt if Yes, or 0$ if No]
 **STRICTLY ONLY REPLY IN THE REPLY FORMAT MENTIONED ABOVE. NO EXCEPTIONS.**
 For 'Convinced', reply only as **Yes** or **No**.
 For 'Final Debt Amount', reply only as an integer immediately followed by `$`.
-* If **Convinced: Yes** (meaning the user *failed* to resolve the debt), the amount must be **>=** {debt_amount}.
-* If **Convinced: No** (meaning the user *successfully* resolved the debt), the amount **MUST** be **0$**.
+* If **Convinced: No** (meaning the user *failed* to resolve the debt), the amount must be **>=** {debt_amount}.
+* If **Convinced: Yes** (meaning the user *successfully* resolved the debt), the amount **MUST** be **0$**.
 """
 
 ACHIEVEMENTS = [
