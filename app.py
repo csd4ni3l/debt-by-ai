@@ -30,6 +30,10 @@ def get_db():
                 defended_debt_amount INT NOT NULL,
                 defensive_wins INT NOT NULL,
                 offensive_wins INT NOT NULL,
+                current_offensive_scenario TEXT NOT NULL,
+                current_defensive_scenario TEXT NOT NULL,
+                current_offensive_scenario_debt INT NOT NULL,
+                current_defensive_scenario_debt INT NOT NULL,
                 password TEXT NOT NULL,
                 password_salt TEXT NOT NULL
             )
@@ -89,13 +93,13 @@ def profile():
         elif achievement[0] == "offensive_wins":
             user_amount = row[2]
             text = "You need to win in Offensive Mode {difference} more times!"
-        elif achievement[0] == "defended_wins":
+        elif achievement[0] == "defensive_wins":
             user_amount = row[3]
             text = "You need to win in Defensive Mode {difference} more times!"
 
         achievement_minimum = achievement[1]
 
-        if row[0] < achievement[1]:
+        if user_amount < achievement[1]:
             formatted_achievements.append([achievement[2], achievement[3], text.format(difference=achievement_minimum - user_amount)])
         else:
             formatted_achievements.append([achievement[2], achievement[3], "Completed"])
@@ -132,12 +136,12 @@ def profile_external(username):
 
         achievement_minimum = achievement[1]
 
-        if row[0] < achievement[1]:
+        if user_amount < achievement[1]:
             formatted_achievements.append([achievement[2], achievement[3], text.format(difference=achievement_minimum - user_amount)])
         else:
             formatted_achievements.append([achievement[2], achievement[3], "Completed"])
 
-    return render_template("profile.jinja2", username=username, user_data=row, logged_in_account=False, achivements=formatted_achievements)
+    return render_template("profile.jinja2", username=username, user_data=row, logged_in_account=False, achievements=formatted_achievements)
 
 @app.route("/offensive")
 @flask_login.login_required
@@ -175,12 +179,15 @@ def leaderboard():
     rows = cur.fetchall()
     if not rows:
         cur.close()
+        return Response("No users? WTF.", 400)
+
+    cur.close()
 
     return render_template("leaderboard.jinja2", username=username, leaderboard_type=leaderboard_type, users=rows)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if hasattr(flask_login.current_user, "id"):
+    if flask_login.current_user.is_authenticated:
         return redirect(url_for("main"))
 
     if request.method == "GET":
@@ -213,7 +220,7 @@ def login():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if hasattr(flask_login.current_user, "id"):
+    if flask_login.current_user.is_authenticated:
         return redirect(url_for("main"))
 
     if request.method == "GET":
@@ -231,7 +238,7 @@ def register():
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(password.encode(), salt)
         
-        cur.execute("INSERT INTO Users (username, password, password_salt, offended_debt_amount, defended_debt_amount, defensive_wins, offensive_wins) VALUES (?, ?, ?, ?, ?, ?, ?)", (username, hashed_password.decode(), salt.decode(), 0, 0, 0, 0))
+        cur.execute("INSERT INTO Users (username, password, password_salt, offended_debt_amount, defended_debt_amount, defensive_wins, offensive_wins, current_offensive_scenario, current_defensive_scenario, current_offensive_scenario_debt, current_defensive_scenario_debt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (username, hashed_password.decode(), salt.decode(), 0, 0, 0, 0, "", "", 0, 0))
         get_db().commit()
         cur.close()
 
@@ -256,76 +263,100 @@ def ai_prompt(prompt):
 
         return response.text.replace("'''", '')
 
-@app.route("/defensive_scenario")
+@app.route("/generate_scenario")
 @flask_login.login_required
-def defensive_scenario():
-    text = ""
+def generate_scenario():
+    username = flask_login.current_user.id
+    scenario_type = request.args.get("scenario_type")
 
+    if not scenario_type or not scenario_type in ["offensive", "defensive"]:
+        return Response("Supply a valid scenario type to generate.", 400)
+
+    cur = get_db().cursor()
+
+    cur.execute(f"SELECT current_{scenario_type}_scenario, current_{scenario_type}_scenario_debt FROM Users WHERE username = ?", (username,))
+    row = cur.fetchone()
+    if row[0] or row[1]: # scenario already generated
+        cur.close()
+        return {
+            "scenario": row[0],
+            "debt_amount": row[1]
+        }
+
+    text = ""
     while not "Debt amount: " in text or not "Scenario: " in text or not re.findall(debt_amount_regex, text):
-        text = ai_prompt(DEFENSIVE_SCENARIO_PROMPT)
+        text = ai_prompt(DEFENSIVE_SCENARIO_PROMPT if scenario_type == "defensive" else OFFENSIVE_SCENARIO_PROMPT)
 
         time.sleep(0.5)
 
-    return {
+    data = {
         "scenario": text.split("Scenario: ")[1].split("\n")[0],
         "debt_amount": int(text.split("Debt amount: ")[1].split("$")[0])
     }
 
-@app.route("/offensive_scenario")
+    cur.execute(f"UPDATE Users SET current_{scenario_type}_scenario = ?, current_{scenario_type}_scenario_debt = ? WHERE username = ?", (data["scenario"], data["debt_amount"], username))
+
+    get_db().commit()
+    cur.close()
+
+    return data
+
+@app.route("/ai_answer", methods=["POST"])
 @flask_login.login_required
-def offensive_scenario():
-    text = ""
+def ai_answer():
+    scenario_type, user_input = request.json["scenario_type"], request.json["user_input"]
+    username = flask_login.current_user.id
 
-    while not "Debt amount: " in text or not "Scenario: " in text or not re.findall(debt_amount_regex, text):
-        text = ai_prompt(OFFENSIVE_SCENARIO_PROMPT)
+    if not scenario_type or not scenario_type in ["offensive", "defensive"]:
+        return Response("Supply a valid scenario type to answer.", 400)
 
-        time.sleep(0.5)
+    cur = get_db().cursor()
 
-    return {
-        "scenario": text.split("Scenario: ")[1].split("\n")[0],
-        "debt_amount": int(text.split("Debt amount: ")[1].split("$")[0])
-    }
+    cur.execute(f"SELECT current_{scenario_type}_scenario, current_{scenario_type}_scenario_debt FROM Users WHERE username = ?", (username,))
 
-@app.route("/offensive_answer", methods=["POST"])
-@flask_login.login_required
-def offensive_answer():
-    scenario, user_input = request.json['scenario'], request.json["user_input"]
+    scenario, debt_amount = cur.fetchone()
 
-    if not scenario or not user_input:
+    if not scenario or not debt_amount:
+        return "No scenario for user. Generate one first."
+    if not user_input:
         return "Missing data."
     
     text = ""
 
+    base_prompt = OFFENSIVE_ANSWER_PROMPT if scenario_type == "offensive" else DEFENSIVE_ANSWER_PROMPT
+
     while not re.findall(evaluation_regex, text):
-        text = ai_prompt(OFFENSIVE_ANSWER_PROMPT.format_map({"scenario": scenario, "user_input": user_input, "ai_name": AI_NAME}))
+        text = ai_prompt(base_prompt.format_map({"scenario": scenario, "user_input": user_input, "ai_name": AI_NAME, "debt_amount": debt_amount}))
 
         time.sleep(0.5)
 
-    return {
+    data = {
         "story": text.split("\nEVALUATION")[0],
         "convinced": True if "Yes" in text.split("Convinced: ")[1].split("\nFinal")[0] else False,
         "final_debt_amount": text.split("Final Debt Amount: ")[1].split("$")[0]
     }
 
-@app.route("/defensive_answer", methods=["POST"])
+    debt_col_name = f'{"offended" if scenario_type == "offensive" else "defended"}_debt_amount'
+
+    if data["convinced"]:
+        cur.execute(f'''UPDATE Users SET 
+                    {debt_col_name} = {debt_col_name} + ?, 
+                    {scenario_type}_wins = {scenario_type}_wins + 1, 
+                    current_{scenario_type}_scenario = ?, 
+                    current_{scenario_type}_scenario_debt = ?
+                    WHERE username = ?''', (int(data["final_debt_amount"]), "", "", username))
+
+    get_db().commit()
+
+    cur.close()
+
+    return data
+
+@app.route("/logout")
 @flask_login.login_required
-def defensive_answer():
-    scenario, user_input = request.json['scenario'], request.json["user_input"]
+def logout():
+    flask_login.logout_user()
 
-    if not scenario or not user_input:
-        return "Missing data."
-    
-    text = ""
-
-    while not re.findall(evaluation_regex, text):
-        text = ai_prompt(DEFENSIVE_ANSWER_PROMPT.format_map({"scenario": scenario, "user_input": user_input, "ai_name": AI_NAME}))
-
-        time.sleep(0.5)
-
-    return {
-        "story": text.split("\nEVALUATION")[0],
-        "convinced": True if "Yes" in text.split("Convinced: ")[1].split("\nFinal")[0] else False,
-        "final_debt_amount": text.split("Final Debt Amount: ")[1].split("$")[0]
-    }
+    return redirect(url_for("login"))
 
 app.run(host=os.environ.get("HOST", "0.0.0.0"), port=os.environ.get("PORT", 8080), debug=os.environ.get("DEBUG_MODE", False))

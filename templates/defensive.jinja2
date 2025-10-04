@@ -90,7 +90,7 @@
     }
 
     async function generate_defensive_scenario() {
-        const response = await fetch("/defensive_scenario");
+        const response = await fetch("/generate_scenario?scenario_type=defensive");
         const data = await response.json(); 
 
         document.getElementById("scenario-label").innerHTML = `<strong>Scenario:</strong> ${DOMPurify.sanitize(data["scenario"])}`;
@@ -111,10 +111,11 @@
         messageInput.value = "";
 
         try {
-            const response = await fetch("/defensive_answer", {
+            const response = await fetch("/ai_answer", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    "scenario_type": "defensive",
                     "user_input": value,
                     "scenario": document.getElementById('scenario-label').textContent.replace('Scenario: ', '').replace('Scenario:', '').trim()
                 })

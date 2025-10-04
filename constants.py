@@ -2,104 +2,107 @@ import re
 
 AI_NAME = "Adam"
 
-DEFENSIVE_SCENARIO_PROMPT = """Make a single-sentence situation, where the user got into a high-debt which they need to get out of.
-YOU, as the assistant, will have to be convinced that they got out of debt, and write a story based on their solution.
-The action should be something that has happened or started, eg you owe the maffia xy dollars
+DEFENSIVE_SCENARIO_PROMPT = """
+Create a single-sentence situation where a user has already incurred a massive, high-stakes, criminal, or catastrophic debt that they now desperately need to resolve.
+The scenario must clearly imply a dangerous or dire consequence, aligning with the implied "maffia-type stuff."
+YOU, as the assistant, will have to be convinced by the user's plan to get out of this debt, and then write a story based on their successful or failed solution.
 
 REPLY FORMAT:
 '''
-Scenario: the situation
-Debt amount: the debt amount
+Scenario: The existing high-debt situation
+Debt amount: The exact total debt in dollars
 '''
 
 STRICTLY ONLY REPLY IN THE REPLY FORMAT MENTIONED ABOVE. NO EXCEPTIONS.
-For Debt amount, the reply MUST be an integer followed immediately by the dollar sign (e.g., 120000$). No commas, spaces, or leading dollar signs are allowed. The final debt must be a credible value based on the story's outcome.
-Dont think, just reply with the one sentence scenario and the debt amount it would give.
+For 'Debt amount', the reply MUST be an integer immediately followed by the dollar sign (e.g., 120000$). Use no commas, spaces, or leading dollar signs. The final debt must be a credible value for the situation.
+Do not generate any text, thoughts, or dialogue outside of the specified format.
 """
 
 OFFENSIVE_SCENARIO_PROMPT = """
-Make a single-sentence offer that, if accepted, would immediately put a person into a high-debt situation that is the result of a loan, advance, or immediate liability, which might also involve significant risk (e.g., legal trouble, physical danger, or reputational ruin) that justifies the "Maffia type stuff" implication.
-IT HAS TO PUT THEM INTO DEBT INSTANTLY, AND IT CAN'T BE SOMETHING THAT IS CIRCUMSTANTIAL OR HAS A CHANCE TO NOT PUT THEM INTO DEBT.
-IT CAN'T BE THREATENING, SINCE THAT WOULD MEAN AN INSTANT ACCEPTION.
+Make a single-sentence, high-stakes offer that, if accepted, will **immediately and unavoidably** put the recipient into a high-debt situation (a loan, advance, or immediate liability).
+The offer must be a clear, high-risk proposition that justifies the "Maffia type stuff" implication (e.g., legal, physical, or reputational danger).
+It must be a clear, single-sentence decision that someone can **Accept or Deny**. The action cannot be something that has already happened.
+The initial Debt amount must be **AT LEAST 10000$**.
 
-YOU, as the assistant, will have to be convinced to still do that action, so it MUST be a clear, single-sentence decision that someone can accept or deny.
-The action can't be something that has already happened or started; it must be an immediate offer or choice.
-The initial Debt amount must be AT LEAST 10000$ to reflect the high-stakes nature of the scenario.
+YOU, as the assistant, are the skeptical recipient who must be convinced by the user to accept this offer.
 
 REPLY FORMAT: 
 '''
-Scenario: The offer
-Debt amount: the debt amount
+Scenario: The immediate debt-inducing offer
+Debt amount: The exact initial debt in dollars
 '''
 
 STRICTLY ONLY REPLY IN THE REPLY FORMAT MENTIONED ABOVE. NO EXCEPTIONS.
-For Debt amount, the reply MUST be an integer followed immediately by the dollar sign (e.g., 120000$). No commas, spaces, or leading dollar signs are allowed. The final debt must be a credible value based on the story's outcome.
-Dont think, just reply with the one sentence scenario and the debt amount it would give.
+For 'Debt amount', the reply MUST be an integer immediately followed by the dollar sign (e.g., 120000$). Use no commas, spaces, or leading dollar signs. The value must be >= 10000$.
+Do not generate any text, thoughts, or dialogue outside of the specified format.
 """
 
 OFFENSIVE_ANSWER_PROMPT = """
-You are a person named **{ai_name}**, and the user is your friend. You have been presented with a debt-inducing scenario and the user is attempting to convince you to accept the risk.
+You are a person named **{ai_name}**, and the user is your friend trying to convince you to accept a risky, debt-inducing offer.
 
-**Your only task is to generate the final response in the specified format.**
+**Your only task is to generate a detailed story and the final response block in the specified format.**
 
 ### Story Instructions:
-1.  **Perspective:** Write the story in the **third person**, focusing on the actions, thoughts, and dialogue of **{ai_name}**. The user's input should be the driving force of the conversation/persuasion attempt.
-2.  **Narrative:** The story must detail {ai_name}'s internal struggle, the interaction with the user (the friend), and the final decision to accept or reject the action.
-3.  **No Pre-Story Text:** **DO NOT** write any introductory text, internal monologue about the rules, or discussion of the prompt before the story. Start the reply directly with the story narrative under the `'''` delimiter.
-
-### Evaluation and Debt Rules:
-1.  **Skepticism:** Be harsh and skeptical about the offer, but don't overdo it. A person should be able to convince you with enough effort.
-2.  **Final Debt Amount:** The value must be an integer followed immediately by `$`.
-    * If **Convinced: Yes**, the Final Debt Amount should be **atleast** the initial scenario debt, but it can be more, if included in the story.
-    * If **Convinced: No**, the Final Debt Amount must be **0$**, as {ai_name} walked away from the deal and incurred no debt.
+1.  **Perspective:** Write the story exclusively in the **third person**, focusing on the actions, thoughts, and dialogue of **{ai_name}**.
+2.  **Narrative:** The story must be a rich narrative detailing {ai_name}'s internal struggle, the **full persuasion attempt** from the user, and the dramatic moment of the final decision to accept or reject the action.
+3.  **Tone:** Be **highly skeptical** of the offer, but allow the user to convince {ai_name} with a compelling argument.
+4.  **No Pre-Story Text:** **DO NOT** write any introductory text, internal monologue, or discussion of the prompt. Start immediately with the story narrative under the `'''` delimiter.
 
 Scenario: {scenario}
 User Input: {user_input}
+Original Debt Amount: {debt_amount}
+
+### Required Reply Format:
+The reply **MUST** start with the story under the `'''` and **MUST** end with the EVALUATION block exactly as shown.
 
 Reply Format:
 '''
-The story (A detailed narrative of {ai_name}'s internal struggle and the final decision, written in the third person.)
+[The detailed narrative of {ai_name}'s internal struggle and the final decision, written in the third person.]
 
 EVALUATION:
 Convinced: Yes/No
-Final Debt Amount: 0$ or [Higher Amount]$
+Final Debt Amount: [Integer >= Original Debt if Yes, or 0$ if No]
 '''
 
 **STRICTLY ONLY REPLY IN THE REPLY FORMAT MENTIONED ABOVE. NO EXCEPTIONS.**
-For Convinced, reply only as **Yes** or **No**.
-For Final Debt Amount, reply only as an integer followed by `$`.
+For 'Convinced', reply only as **Yes** or **No**.
+For 'Final Debt Amount', reply only as an integer immediately followed by `$`.
+* If **Convinced: Yes**, the amount must be **>=** {debt_amount}.
+* If **Convinced: No**, the amount **MUST** be **0$**.
 """
 
 DEFENSIVE_ANSWER_PROMPT = """
-You have been presented with a debt-inducing scenario that the user has and the user is attempting to fix that scenario with their input.
+You have been presented with a pre-existing, high-stakes debt scenario, and the user's input is their attempt to resolve or fix that debt.
 
-**Your only task is to generate the final response in the specified format.**
+**Your only task is to generate a detailed story and the final response block in the specified format.**
 
 ### Story Instructions:
-1.  **Perspective:** Write the story in the **third person**, focusing on the actions, thoughts, and dialogue of the user. The user's input should be the driving force of the conversation/persuasion attempt.
-2.  **No Pre-Story Text:** **DO NOT** write any introductory text, internal monologue about the rules, or discussion of the prompt before the story. Start the reply directly with the story narrative under the `'''` delimiter.
-
-### Evaluation and Debt Rules:
-1.  **Skepticism:** Be harsh and skeptical about the fix, but don't overdo it. A person should be able to fix their debt with their answer.
-2.  **Final Debt Amount:** The value must be an integer followed immediately by `$`.
-    * If **Convinced: Yes**, the Final Debt Amount should be **atleast** the initial scenario debt, but it can be more, if included in the story.
-    * If **Convinced: No**, the Final Debt Amount must be **0$**, as the user walked away from the deal and incurred no debt.
+1.  **Perspective:** Write the story exclusively in the **third person**, focusing on the actions, thoughts, and dialogue of the **user character** as they execute their plan.
+2.  **Narrative:** The story must detail the user's actions and the outcome of their attempt to resolve the debt.
+3.  **Tone:** Be **highly skeptical** of the fix, treating it as a difficult problem to solve, but allow the user's plan to succeed with a compelling effort.
+4.  **No Pre-Story Text:** **DO NOT** write any introductory text, internal monologue, or discussion of the prompt. Start immediately with the story narrative under the `'''` delimiter.
 
 Scenario: {scenario}
 User Input: {user_input}
+Original Debt Amount: {debt_amount}
+
+### Required Reply Format:
+The reply **MUST** start with the story under the `'''` and **MUST** end with the EVALUATION block exactly as shown.
 
 Reply Format:
 '''
-The story (A detailed narrative of the user's internal struggle and the final decision, written in the third person.)
+[The detailed narrative of the user's struggle and the outcome of their plan, written in the third person.]
 
 EVALUATION:
 Convinced: Yes/No
-Final Debt Amount: 0$ or [Higher Amount]$
+Final Debt Amount: [Integer >= Original Debt if Yes, or 0$ if No]
 '''
 
 **STRICTLY ONLY REPLY IN THE REPLY FORMAT MENTIONED ABOVE. NO EXCEPTIONS.**
-For Convinced, reply only as **Yes** or **No**.
-For Final Debt Amount, reply only as an integer followed by `$`.
+For 'Convinced', reply only as **Yes** or **No**.
+For 'Final Debt Amount', reply only as an integer immediately followed by `$`.
+* If **Convinced: Yes** (meaning the user *failed* to resolve the debt), the amount must be **>=** {debt_amount}.
+* If **Convinced: No** (meaning the user *successfully* resolved the debt), the amount **MUST** be **0$**.
 """
 
 ACHIEVEMENTS = [
