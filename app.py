@@ -2,9 +2,6 @@ from flask import Flask, render_template, request, g, redirect, url_for, Respons
 from dotenv import load_dotenv
 from google.genai import Client, types
 
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-
 from constants import *
 
 import os, requests, time, re, sqlite3, flask_login, bcrypt, secrets
@@ -16,12 +13,6 @@ if not os.environ.get("USE_HACKCLUB_AI", "true").lower() == "true":
     gemini_client = Client()
 
 app = Flask(__name__)
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["30 per minute"],
-    storage_uri="memory://"
-)
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
 
@@ -274,7 +265,6 @@ def ai_prompt(prompt):
         return response.text.replace("'''", '')
 
 @app.route("/generate_scenario")
-@limiter.limit("1 per 15 seconds")
 @flask_login.login_required
 def generate_scenario():
     username = flask_login.current_user.id
@@ -313,7 +303,6 @@ def generate_scenario():
     return data
 
 @app.route("/ai_answer", methods=["POST"])
-@limiter.limit("1 per 15 seconds", override_defaults=False)
 @flask_login.login_required
 def ai_answer():
     scenario_type, user_input = request.json["scenario_type"], request.json["user_input"]

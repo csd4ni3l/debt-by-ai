@@ -3,7 +3,6 @@ https://www.python.org/
 
 Thanks to the following libraries that were used in this app:
 - Flask - The library used for HTTP
-- Flask-limiter - Rate limit for Flask
 - Flask-login - Login for Flask
 - bcrypt - Password hashing
 - Google GenAI - Gemini AI model usage

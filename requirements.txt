@@ -21,15 +21,10 @@ charset-normalizer==3.4.3
     # via requests
 click==8.3.0
     # via flask
-deprecated==1.2.18
-    # via limits
 flask==3.1.2
     # via
     #   debt-by-ai (pyproject.toml)
-    #   flask-limiter
     #   flask-login
-flask-limiter==4.0.0
-    # via debt-by-ai (pyproject.toml)
 flask-login==0.6.3
     # via debt-by-ai (pyproject.toml)
 google-auth==2.41.1
@@ -51,21 +46,11 @@ itsdangerous==2.2.0
     # via flask
 jinja2==3.1.6
     # via flask
-limits==5.6.0
-    # via flask-limiter
-markdown-it-py==4.0.0
-    # via rich
 markupsafe==3.0.3
     # via
     #   flask
     #   jinja2
     #   werkzeug
-mdurl==0.1.2
-    # via markdown-it-py
-ordered-set==4.1.0
-    # via flask-limiter
-packaging==25.0
-    # via limits
 pyasn1==0.6.1
     # via
     #   pyasn1-modules
@@ -76,16 +61,12 @@ pydantic==2.11.9
     # via google-genai
 pydantic-core==2.33.2
     # via pydantic
-pygments==2.19.2
-    # via rich
 python-dotenv==1.1.1
     # via debt-by-ai (pyproject.toml)
 requests==2.32.5
     # via
     #   debt-by-ai (pyproject.toml)
     #   google-genai
-rich==14.1.0
-    # via flask-limiter
 rsa==4.9.1
     # via google-auth
 sniffio==1.3.1
@@ -95,9 +76,7 @@ tenacity==9.1.2
 typing-extensions==4.15.0
     # via
     #   anyio
-    #   flask-limiter
     #   google-genai
-    #   limits
     #   pydantic
     #   pydantic-core
     #   typing-inspection
@@ -111,5 +90,3 @@ werkzeug==3.1.3
     # via
     #   flask
     #   flask-login
-wrapt==1.17.3
-    # via deprecated
