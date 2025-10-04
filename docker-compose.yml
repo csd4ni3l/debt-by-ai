@@ -1,5 +1,6 @@
 services:
   debt-by-ai:
+    image: csd4ni3lofficial/debt-by-ai:latest
     build: .
     container_name: debt-by-ai
     ports:

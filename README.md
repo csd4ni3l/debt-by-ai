@@ -1,10 +1,17 @@
-Inspired by the Death By AI game available on Discord. (This project has no affiliation with Discord inc. Or any subsidiaries.)
+Debt by AI is a game where you have to convince an AI to get into debt, or to get you out of it.
+The 2 modes are Offensive(When you have to convince it to get into it) and Defensive(When you have to get out of it).
+The game was inspired by Death by AI, a game on Discord, but this game has no affiliation with Discord or any subsidiaries.
 
-A game where you have to convince AI to get into debt, or have to convince AI to put you out of debt.
+# How to run:
 
-How to run:
-1. Download the repository code.
-2. Run with either:
-- Install the modules into a venv or use `uv sync` to automatically do it for you, and then run `app.py`.
+## Manual
+- Download the code
+- install the modules into a venv using `pip install -r requirements.txt` or use `uv sync` to automatically do it for you
+- run `app.py`.
+
+## Docker Compose
+- Download the code, or just the compose file
 - Run `docker compose up -d` in this directory
-- Build the docker image, then run with `docker run`
+
+## Docker CLI
+- Run using `docker run --name debt-by-ai -p 8080:8080 -e HOST=0.0.0.0 -e PORT=8080 -e DEBUG_MODE=false -e USE_HACKCLUB_AI=false -e GEMINI_API_KEY=changeme -e FLASK_SECRET_KEY=changeme -e DB_FILE=/app/data.db -v ./data.db:/app/data.db --restart unless-stopped csd4ni3lofficial/debt-by-ai:latest`
