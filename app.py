@@ -353,6 +353,86 @@ def ai_answer():
 
     return data
 
+
+@app.route("/change_username", methods=["POST"])
+@flask_login.login_required
+def change_username():
+    username = flask_login.current_user.id
+    new_username = request.form["new_username"]
+
+    cur = get_db().cursor()
+
+    cur.execute("UPDATE Users SET username = ? WHERE username = ?", (new_username, username))
+
+    get_db().commit()
+    cur.close()
+
+    flask_login.logout_user()
+    return redirect(url_for("login"))
+
+@app.route("/change_password", methods=["POST"])
+@flask_login.login_required
+def change_password():
+    username = flask_login.current_user.id
+    current_password, new_password, confirm_password = request.form["current_password"], request.form["new_password"], request.form["confirm_password"]
+
+    if not secrets.compare_digest(new_password, confirm_password):
+        return Response("Passwords do not match.", 400)
+    
+    cur = get_db().cursor()
+
+    cur.execute("SELECT password, password_salt FROM Users WHERE username = ?", (username,))
+
+    row = cur.fetchone()
+
+    if not row:
+        return Response("DB is not healthy", 500)
+
+    hashed_password, salt = row
+
+    if not secrets.compare_digest(bcrypt.hashpw(current_password.encode(), salt.encode()), hashed_password.encode()):
+        return Response("Unathorized.", 401)
+
+    new_salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(new_password.encode(), new_salt)
+
+    cur.execute("UPDATE Users SET password = ?, password_salt = ? WHERE username = ?", (hashed_password.decode(), new_salt.decode(), username))
+    
+    get_db().commit()
+    cur.close()
+
+    flask_login.logout_user()
+    return redirect(url_for("login"))
+
+@app.route("/delete_account", methods=["POST"])
+@flask_login.login_required
+def delete_accocunt():
+    username = flask_login.current_user.id
+
+    cur = get_db().cursor()
+
+    cur.execute("DELETE FROM Users WHERE username = ?", (username,))
+
+    get_db().commit()
+    cur.close()
+
+    flask_login.logout_user()
+    return redirect(url_for("login"))
+
+@app.route("/reset_data", methods=["POST"])
+@flask_login.login_required
+def reset_data():
+    username = flask_login.current_user.id
+
+    cur = get_db().cursor()
+
+    cur.execute("UPDATE Users SET offended_debt_amount = ?, defended_debt_amount = ?, defensive_wins = ?, offensive_wins = ?, current_offensive_scenario = ?, current_defensive_scenario = ?, current_offensive_scenario_debt = ?, current_defensive_scenario_debt = ? WHERE username = ?", (0, 0, 0, 0, "", "", 0, 0, username))
+
+    get_db().commit()
+    cur.close()
+
+    return redirect("/")
+
 @app.route("/logout")
 @flask_login.login_required
 def logout():
