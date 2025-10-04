@@ -2,5 +2,10 @@ Huge Thanks to Python for being the programming language used in this app.
 https://www.python.org/
 
 Thanks to the following libraries that were used in this app:
-rich - https://github.com/Textualize/rich
-requests - https://github.com/psf/requests
+- Flask - The library used for HTTP
+- Flask-limiter - Rate limit for Flask
+- Flask-login - Login for Flask
+- bcrypt - Password hashing
+- Google GenAI - Gemini AI model usage
+- python-dotenv - Load .env file content
+- requests - Access API of HackClub AI 
