@@ -255,7 +255,7 @@ def register():
         return redirect(url_for("login"))
 
 def ai_prompt(prompt):
-    if not os.environ.get("USE_HACKCLUB_AI", "true").lower() == "true":
+    if os.environ.get("USE_HACKCLUB_AI", "true").lower() == "true":
         response = requests.post(
             "https://ai.hackclub.com/chat/completions", 
             headers={"Content-Type": "application/json"},
