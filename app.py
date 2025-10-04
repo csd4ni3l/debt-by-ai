@@ -2,6 +2,9 @@ from flask import Flask, render_template, request, g, redirect, url_for, Respons
 from dotenv import load_dotenv
 from google.genai import Client, types
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 from constants import *
 
 import os, requests, time, re, sqlite3, flask_login, bcrypt, secrets
@@ -9,10 +12,17 @@ import os, requests, time, re, sqlite3, flask_login, bcrypt, secrets
 if os.path.exists(".env"):
     load_dotenv(".env")
 
-if not os.environ.get("USE_HACKCLUB_AI", True):
+if not os.environ.get("USE_HACKCLUB_AI", "true").lower() == "true":
     gemini_client = Client()
 
 app = Flask(__name__)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["15 per minute"],
+    storage_uri="memory://"
+)
+
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
 
 login_manager = flask_login.LoginManager()
@@ -233,7 +243,7 @@ def register():
         cur.execute("SELECT username from Users WHERE username = ?", (username,))
 
         if cur.fetchone():
-            return Response("An Account with this username already exists.", 400)
+            return Response("An account with this username already exists.", 400)
         
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(password.encode(), salt)
@@ -245,7 +255,7 @@ def register():
         return redirect(url_for("login"))
 
 def ai_prompt(prompt):
-    if os.environ.get("USE_HACKCLUB_AI", True):
+    if not os.environ.get("USE_HACKCLUB_AI", "true").lower() == "true":
         response = requests.post(
             "https://ai.hackclub.com/chat/completions", 
             headers={"Content-Type": "application/json"},
@@ -264,6 +274,7 @@ def ai_prompt(prompt):
         return response.text.replace("'''", '')
 
 @app.route("/generate_scenario")
+@limiter.limit("1 per 15 seconds")
 @flask_login.login_required
 def generate_scenario():
     username = flask_login.current_user.id
@@ -302,6 +313,7 @@ def generate_scenario():
     return data
 
 @app.route("/ai_answer", methods=["POST"])
+@limiter.limit("1 per 15 seconds", override_defaults=False)
 @flask_login.login_required
 def ai_answer():
     scenario_type, user_input = request.json["scenario_type"], request.json["user_input"]
@@ -359,4 +371,4 @@ def logout():
 
     return redirect(url_for("login"))
 
-app.run(host=os.environ.get("HOST", "0.0.0.0"), port=os.environ.get("PORT", 8080), debug=os.environ.get("DEBUG_MODE", False))
+app.run(host=os.environ.get("HOST", "0.0.0.0"), port=int(os.environ.get("PORT", 8080)), debug=os.environ.get("DEBUG_MODE", "false").lower() == "true")
