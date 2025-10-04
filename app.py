@@ -356,7 +356,7 @@ def ai_answer():
                     {scenario_type}_wins = {scenario_type}_wins + 1, 
                     current_{scenario_type}_scenario = ?, 
                     current_{scenario_type}_scenario_debt = ?
-                    WHERE username = ?''', (int(data["final_debt_amount"]), "", "", username))
+                    WHERE username = ?''', (int(data["final_debt_amount"]) if scenario_type == "offensive" else debt_amount, "", "", username))
 
     get_db().commit()
 
