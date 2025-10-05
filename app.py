@@ -326,7 +326,7 @@ def ai_answer():
 
     base_prompt = OFFENSIVE_ANSWER_PROMPT if scenario_type == "offensive" else DEFENSIVE_ANSWER_PROMPT
 
-    while not re.findall(evaluation_regex, text):
+    while not re.findall(evaluation_regex, text) or int(text.split("Final Debt Amount: ")[1].split("$")[0]) > 1000000:
         text = ai_prompt(base_prompt.format_map({"scenario": scenario, "user_input": user_input, "ai_name": AI_NAME, "debt_amount": debt_amount}))
 
         time.sleep(0.5)

@@ -66,7 +66,7 @@ Final Debt Amount: [Integer >= Original Debt if Yes, or 0$ if No]
 
 **STRICTLY ONLY REPLY IN THE REPLY FORMAT MENTIONED ABOVE. NO EXCEPTIONS.**
 For 'Convinced', reply only as **Yes** or **No**.
-For 'Final Debt Amount', reply only as an integer immediately followed by `$`.
+For 'Final Debt Amount', reply only as an integer immediately followed by `$`. The 'Final Debt Amount' CAN'T EXCEED 1000000$.
 * If **Convinced: Yes**, the amount must be **>=** {debt_amount}.
 * If **Convinced: No**, the amount **MUST** be **0$**.
 """
