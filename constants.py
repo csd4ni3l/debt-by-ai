@@ -26,6 +26,9 @@ The initial Debt amount must be **AT LEAST 10000$**.
 
 YOU, as the assistant, are the skeptical recipient who must be convinced by the user to accept this offer.
 
+YOU MUST WRITE ABOUT THE user input, OR AROUND IT, BUT YOU CAN'T GET OFF TRACK AND WRITE ABOUT ANOTHER SOLUTION YOU MADE UP.
+THE STORY SHOULD BE MAXIMUM 400 WORDS LONG.
+
 REPLY FORMAT: 
 '''
 Scenario: The offer in one sentence
