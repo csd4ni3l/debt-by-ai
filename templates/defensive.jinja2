@@ -46,7 +46,7 @@
         </div>
         <div id="chat-body" class="card-body" style="height: 400px; overflow-y: auto;">
             <div class="d-flex justify-content-start mb-3">
-                <div class="p-2 rounded bg-light border" style="max-width: 80%;">
+                <div class="p-2 rounded bg-dark border" style="max-width: 80%;">
                     <strong>AI ({{ ai_name }}):</strong> I am {{ ai_name }}, the AI. Convince me with a solution to your debt :)
                 </div>
             </div>
@@ -69,7 +69,7 @@
 
     function appendMessage(sender, text, type) {
         let alignmentClass = 'justify-content-start';
-        let backgroundClass = 'bg-light border';
+        let backgroundClass = 'bg-dark border';
         let senderTag = `<strong>${sender}:</strong>`;
         
         if (sender === 'You') {
