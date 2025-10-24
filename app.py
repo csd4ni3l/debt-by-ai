@@ -4,7 +4,7 @@ from google.genai import Client, types
 
 from constants import *
 
-import os, requests, time, re, sqlite3, flask_login, bcrypt, secrets
+import os, requests, time, re, sqlite3, flask_login, bcrypt, secrets, html
 
 if os.path.exists(".env"):
     load_dotenv(".env")
@@ -115,7 +115,7 @@ def profile_external(username):
 
     row = cur.fetchone()
     if not row:
-        return Response("Invalid login. Please log out.", 400)
+        return Response("Invalid user.", 400)
 
     cur.close()
 
@@ -227,13 +227,19 @@ def register():
     if request.method == "GET":
         return render_template("register.jinja2")
     elif request.method == "POST":
-        username, password = request.form.get("username"), request.form.get("password")
+        password = request.form.get("password")
+
+        if request.form["username"] != html.escape(request.form["username"], quote=True):
+            return "No XSS please"
+
+        username = html.escape(request.form["username"], quote=True)
 
         cur = get_db().cursor()
 
         cur.execute("SELECT username from Users WHERE username = ?", (username,))
 
         if cur.fetchone():
+            cur.close()
             return Response("An account with this username already exists.", 400)
         
         salt = bcrypt.gensalt()
@@ -358,7 +364,11 @@ def ai_answer():
 @flask_login.login_required
 def change_username():
     username = flask_login.current_user.id
-    new_username = request.form["new_username"]
+    
+    if request.form["new_username"] != html.escape(request.form["new_username"], quote=True):
+        return "No XSS please"
+
+    new_username = html.escape(request.form["new_username"], quote=True)
 
     cur = get_db().cursor()
 
@@ -406,7 +416,7 @@ def change_password():
 
 @app.route("/delete_account", methods=["POST"])
 @flask_login.login_required
-def delete_accocunt():
+def delete_account():
     username = flask_login.current_user.id
 
     cur = get_db().cursor()
