@@ -20,4 +20,4 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: debt-by-ai:latest
+          tags: git.csd4ni3l.hu/csd4ni3l/debt-by-ai:latest
